@@ -112,7 +112,7 @@ async function getUserRecipes(user_name, query_type) {
     }
 }
 
-async function lastWatched(user_name) {
+async function lastWatchedRecipes(user_name) {
     let recipeIDS = await dbUtils.execQuery(
         `SELECT TOP 3 recipeID from watchedRecipes WHERE username = '${user_name}' ORDER BY watchTime DESC`
     )
