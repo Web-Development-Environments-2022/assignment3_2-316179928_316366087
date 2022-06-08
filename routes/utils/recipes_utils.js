@@ -37,7 +37,7 @@ async function getRandomRecipes() {
             "wasWatchedByUserBefore": true, //need to change here
             "wasSavedByUser": true // need to change here
         }
-    }
+    });
 }
 
 async function getRecipeInformation(recipe_id) {
