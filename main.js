@@ -56,7 +56,6 @@ const recipes = require("./routes/recipes");
 const auth = require("./routes/auth");
 const anyUserRecipes = require("./routes/anyUserRecipes")
 
-
 //#region cookie middleware
 app.use(function (req, res, next) {
   if (req.session && req.session.user_id) {
