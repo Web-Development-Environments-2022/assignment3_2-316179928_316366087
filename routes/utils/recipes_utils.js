@@ -1,4 +1,5 @@
 const axios = require("axios");
+const DButils = require("./DButils");
 const api_domain = "https://api.spoonacular.com/recipes";
 
 
@@ -9,11 +10,12 @@ const api_domain = "https://api.spoonacular.com/recipes";
  */
 
 
+
 async function getRecipeInformation(recipe_id) {
     return await axios.get(`${api_domain}/${recipe_id}/information`, {
         params: {
             includeNutrition: false,
-            apiKey: process.env.spooncular_apiKey
+            apiKey: process.env.api_token
         }
     });
 }
@@ -37,9 +39,24 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
+async function addRecepie(recipe_details){
+    n = recipe_details.name
+    timeToMake = recipe_details.timeToMake
+    whoCanEatVegOrNot = recipe_details.whoCanEatVegOrNot,
+    glutenFree = recipe_details.glutenFree,
+    ingridients = recipe_details.ingridients,
+    instructions = recipe_details.instructions,
+    numberOfMeals = recipe_details.numberOfMeals
+    return await DButils.execQuery(`insert into recipes values ('${n}','${timeToMake}', '${whoCanEatVegOrNot}', '${glutenFree}', '${ingridients}','${instructions}','${numberOfMeals}')`);
+    // return "success"
+
+}
+
+
 
 
 exports.getRecipeDetails = getRecipeDetails;
+exports.addRecepie = addRecepie;
 
 
 
