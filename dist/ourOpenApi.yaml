@@ -1,0 +1,388 @@
+---
+openapi: 3.0.3
+info:
+  title: Recipe API
+  description: This is an API for the recipe website
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+# local:
+- url: "http://127.0.0.1:3000"
+# remote:
+# - url: https://virtserver.swaggerhub.com/ehud-m/Assignment3/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: recipies
+  description: Operations for getting and uploading recipies
+- name: users
+  description: Operations for logging in and registering
+paths:
+  /getRecipeSummerization:
+    get:
+      tags:
+      - recipies
+      summary: this method will return summrize recipe
+      description: |
+        By passing in the appropriate options, you can search for
+        available recipe in the system
+      operationId: getRecipeSummerization
+      parameters:
+      - name: recipeId
+        in: query
+        description: pass an id of recipe to show
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipeSummrization'
+        "404":
+          description: recipe id not found.
+  /getRandomRecipies:
+    get:
+      tags:
+      - recipies
+      summary: this method will generate 3 random recipies.
+      description: 3 recipes has been generated.
+      operationId: getRandomRecipe
+      responses:
+        "200":
+          description: recipes has been loaded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                  - $ref: '#/components/schemas/recipeSummrization'
+        "404":
+          description: recipe not found.
+  /getUserRecipies:
+    get:
+      tags:
+      - recipies
+      summary: returns an array of recipe summerizations
+      description: this method will return either 3 last watched recipes by current user, favorite user recipes or all recipes created by the user, according to the parameter 'type'
+      operationId: getUserRecipies
+      parameters:
+      - name: userName
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - lastWatched
+          - favorite
+          - created
+      responses:
+        "200":
+          description: recipes has been loaded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                  - $ref: '#/components/schemas/recipeSummrization'
+        "404":
+          description: recipe not found.
+  /searchRecipe:
+    get:
+      tags:
+      - recipies
+      summary: Search a recipe
+      description: This method will search a recipe in the db, according to the query specified by the user
+      operationId: searchRecipe
+      parameters:
+      - name: recipeSearchName
+        in: query
+        description: pass an recipe name to search
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: '["name","numberOfRecipes","userName","websiteName","filter"]'
+      responses:
+        "200":
+          description: recipes has been found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                  - $ref: '#/components/schemas/recipeSummrization'
+        "404":
+          description: didn't found results for your search.
+  /recipe:
+    get:
+      tags:
+      - recipies
+      summary: this method will return clicked recipe.
+      description: recipe has been returned.
+      operationId: getClickedRecipe
+      parameters:
+      - name: recipeId
+        in: query
+        description: pass an id of recipe to show
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: found results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+        "404":
+          description: recipe id not found.
+    post:
+      tags:
+      - recipies
+      summary: this method will add a recipe to the db.
+      operationId: addRecipe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addedRecipe'
+        required: true
+      responses:
+        "200":
+          description: Recipe was added successfully
+        "403":
+          description: couldn't register recipe to db
+  /load:
+    get:
+      tags:
+      - webPageLoading
+      summary: this method will return HTML,Css and Js files at first page loading
+      description: |
+        Load all HTML, CSS and JS resources needed to show the website.
+      operationId: loadPage
+      responses:
+        "200":
+          description: Load was successful
+          content:
+            application/JS:
+              schema:
+                type: object
+        "404":
+          description: Resources didnt found.
+  /register:
+    post:
+      tags:
+      - users
+      summary: this method will add user to the db
+      description: By passing in the appropriate options, you can register as a new user.
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+        required: true
+      responses:
+        "201":
+          description: user register was successful
+        "403":
+          description: user name already exists
+  /login:
+    post:
+      tags:
+      - users
+      summary: this method will check login details, if it correct the user will get a cookie.
+      description: By passing in the appropriate options, you can login as a user.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/login_body'
+        required: true
+      responses:
+        "200":
+          description: user log-in was successful
+        "401":
+          description: one of the details is incorrect.
+components:
+  schemas:
+    recipeSummrization:
+      required:
+      - glutenFree
+      - id
+      - name
+      - picture
+      - popularity
+      - timeToMake
+      - wasSavedByUser
+      - wasWatchedByUserBefore
+      - whoCanEatVegOrNot
+      type: object
+      properties:
+        id:
+          type: string
+          format: recipeId
+          example: recipe-1234
+        name:
+          type: string
+          example: Pizza
+        timeToMake:
+          type: string
+          description: time to make the recipe
+          format: time
+          example: 20:00m
+        popularity:
+          type: integer
+          description: number of likes
+          format: int32
+          example: 1234
+        whoCanEatVegOrNot:
+          type: string
+          enum:
+          - vegeterian
+          - vegan
+          - meetLovers
+        glutenFree:
+          type: boolean
+        wasWatchedByUserBefore:
+          type: boolean
+        wasSavedByUser:
+          type: boolean
+    recipe:
+      required:
+      - ingridients
+      - instructions
+      - numberOfMeals
+      type: object
+      properties:
+        ingridients:
+          type: string
+          description: ingridients to make the recipe
+          example: salt
+        instructions:
+          type: string
+          description: instructions to make the recipe
+          example: add salt
+        numberOfMeals:
+          type: integer
+          description: The number of meals that will be created
+          format: int32
+          example: 1234
+    addedRecipe:
+      required:
+      - glutenFree
+      - ingridients
+      - instructions
+      - name
+      - numberOfMeals
+      - picture
+      - timeToMake
+      - whoCanEatVegOrNot
+      type: object
+      properties:
+        name:
+          type: string
+          example: Pizza
+        timeToMake:
+          type: string
+          description: time to make the recipe
+          format: time
+          example: 20:00m
+        whoCanEatVegOrNot:
+          type: string
+          enum:
+          - vegeterian
+          - vegan
+          - meetLovers
+        glutenFree:
+          type: boolean
+        ingridients:
+          type: string
+          description: ingridients to make the recipe
+          example: salt
+        instructions:
+          type: string
+          description: instructions to make the recipe
+          example: add salt
+        numberOfMeals:
+          type: integer
+          description: The number of meals that will be created
+          format: int32
+          example: 1234
+    user:
+      type: object
+      properties:
+        userName:
+          maxLength: 8
+          minLength: 3
+          type: string
+          description: userName contatins between 3 to 8 letters only
+          example: stamuser
+        firstName:
+          type: string
+          description: user's first name
+          example: stam
+        lastName:
+          type: string
+          description: user's last name
+          example: lname
+        country:
+          type: string
+          description: user's country
+          example: Israel
+        password:
+          maxLength: 10
+          minLength: 5
+          type: string
+          description: pasword contatins between 5 to 10 chars, at least one of them is a number and a special char.
+          format: password
+          example: stam$5
+        email:
+          type: string
+          description: user's email
+          format: email
+          example: stam@test.com
+        image-url:
+          type: string
+          description: URL of the user's image
+          format: URL
+          example: https://web.com/photo
+      description: user info
+    inline_response_200:
+      allOf:
+      - $ref: '#/components/schemas/recipeSummrization'
+      - $ref: '#/components/schemas/recipe'
+    login_body:
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+      example:
+        userName: yossi
+        password: yos@55
