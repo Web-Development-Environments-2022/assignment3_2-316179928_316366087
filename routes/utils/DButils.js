@@ -3,7 +3,7 @@ const MySql = require("./MySql");
 
 exports.existsInDB = async function (column,table,username){
      let lst = await execQuery("SELECT " + column + " from " + table);
-     return lst.find((x) => x.username === username)
+     return lst.map((x) => { if(x.username === username){ return x} })
 }
 
 exports.execQuery = async function (query) {
