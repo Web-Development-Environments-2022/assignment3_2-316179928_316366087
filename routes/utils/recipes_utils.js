@@ -11,8 +11,8 @@ const api_domain = "https://api.spoonacular.com/recipes";
 
 
 
-async function getRecipeInformation(recipe_id) {
-    return await axios.get(`${api_domain}/${recipe_id}/information`, {
+async function getRecipeInformation() {
+    return await axios.get(`${api_domain}/random`, {
         params: {
             includeNutrition: false,
             apiKey: process.env.api_token

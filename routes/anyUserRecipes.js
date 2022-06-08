@@ -8,7 +8,19 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes) {
     //     }
     // });
 }
+
+router.get("/getRandomRecipes",async (req, res, next) => {
+    try {
+      random_recipies = await recipes_utils.getRandomRecipies();
+      res.status(200,"random recipes generated")
+    }
+    catch(error){
+      next(error)
+    }
+  })
+
 exports.getRecipesByName = getRecipesByName;
+exports.getRandomRecipies = getRandomRecipies;
 
 /**
  * This path return a full details of number of recipes by their name, using the spooncular api

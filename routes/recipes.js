@@ -17,11 +17,7 @@ router.get("/:recipeId", async (req, res, next) => {
   }
 });
 
-router.get("/getRandomRecipes",async (req, res, next) => {
-  try {
-    
-  }
-})
+
 
 
 router.post('/recipe', async (req,res,next) => {
