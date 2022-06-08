@@ -54,6 +54,7 @@ var port = process.env.PORT || "80"; //local=3000 remote=80
 const user = require("./routes/user");
 const recipes = require("./routes/recipes");
 const auth = require("./routes/auth");
+const anyUserRecipes = require("./routes/anyUserRecipes")
 
 
 //#region cookie middleware
@@ -80,6 +81,7 @@ app.get("/alive", (req, res) => res.send("I'm alive"));
 app.use("/users", user);
 app.use("/recipes", recipes);
 app.use(auth);
+app.use("/anyUserRecipes",anyUserRecipes)
 
 // Default router
 app.use(function (err, req, res, next) {
