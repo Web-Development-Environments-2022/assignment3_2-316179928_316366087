@@ -1,3 +1,8 @@
+var express = require("express");
+var router = express.Router();
+const recipes_utils = require("./utils/recipes_utils");
+
+
 async function getRecipesByName(recipeSearchName, numberOfRecipes) {
     console.log("2")
     console.log(process.env.spooncular_apiKey)
@@ -11,17 +16,17 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes) {
 
 router.get("/getRandomRecipes",async (req, res, next) => {
     try {
-      random_recipies = await recipes_utils.getRandomRecipies();
-      res.status(200,"random recipes generated")
+      random_recipies = await recipes_utils.getRandomRecipes();
+      res.send(random_recipies)
     }
     catch(error){
       next(error)
     }
-  })
+  });
 
-exports.getRecipesByName = getRecipesByName;
-exports.getRandomRecipies = getRandomRecipies;
-
+// exports.getRandomRecipes = getRandomRecipes;
+// exports.getRecipesByName = getRecipesByName;
+module.exports = router;
 /**
  * This path return a full details of number of recipes by their name, using the spooncular api
  */
