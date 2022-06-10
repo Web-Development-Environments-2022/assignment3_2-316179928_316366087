@@ -10,6 +10,36 @@ const api_domain = "https://api.spoonacular.com/recipes";
  */
 
 
+function extractRecipeSummaryFromAPIResult(APIRecipe) {
+    let whoCanEat;
+    if (APIRecipe["vegan"])
+        whoCanEat="vegan";
+    else if (APIRecipe["vegetarian"])
+        whoCanEat="vegetarian"
+    else
+        whoCanEat="meat"
+    return {
+        "id": APIRecipe["id"],
+        "name": APIRecipe["title"],
+        "timeToMake": APIRecipe["readyInMinutes"],
+        "popularity": APIRecipe["aggregateLikes"],
+        "whoCanEatVegOrNot": whoCanEat,
+        "glutenFree": APIRecipe["glutenFree"],
+        "image": APIRecipe["image"],
+        "wasWatchedByUserBefore": true, //need to change here
+        "wasSavedByUser": true // need to change here
+    }
+}
+
+function extractFullRecipeDetailsFromAPIResult(recipe_info) {
+    recipeFullDetails = extractRecipeSummaryFromAPIResult(recipe_info)
+    recipeFullDetails["ingridients"] = recipe_info["extendedIngredients"].map(function(ingridientDict) {
+        return ingridientDict["original"]
+    }).join("\n")
+    recipeFullDetails["instructions"] = recipe_info["instructions"]
+    recipeFullDetails["numberOfMeals"] = recipe_info["servings"]
+    return recipeFullDetails
+}
 
 async function getRandomRecipes() {
     let random_recipies = (await axios.get(`${api_domain}/random`, {
@@ -18,26 +48,7 @@ async function getRandomRecipes() {
             number: 3
         }
     })).data["recipes"];
-    return random_recipies.map(function(recipe) {
-        let whoCanEat;
-        if (recipe["vegan"])
-            whoCanEat="vegan";
-        else if (recipe["vegetarian"])
-            whoCanEat="vegetarian"
-        else
-            whoCanEat="meat"
-        return {
-            "id": recipe["id"],
-            "name": recipe["title"],
-            "timeToMake": recipe["readyInMinutes"],
-            "popularity": recipe["aggregateLikes"],
-            "whoCanEatVegOrNot": whoCanEat,
-            "glutenFree": recipe["glutenFree"],
-            "image": recipe["image"],
-            "wasWatchedByUserBefore": true, //need to change here
-            "wasSavedByUser": true // need to change here
-        }
-    });
+    return random_recipies.map(extractRecipeSummaryFromAPIResult);
 }
 
 async function getRecipeInformation(recipe_id) {
@@ -48,8 +59,6 @@ async function getRecipeInformation(recipe_id) {
         }
     });
 }
-
-
 
 async function getRecipeDetails(recipe_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
@@ -64,7 +73,6 @@ async function getRecipeDetails(recipe_id) {
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,
-        
     }
 }
 
@@ -77,26 +85,7 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes) {
             addRecipeInformation: true
         }
     })).data["results"];
-    return allResults.map(function(recipe) {
-        let whoCanEat;
-        if (recipe["vegan"])
-            whoCanEat="vegan";
-        else if (recipe["vegetarian"])
-            whoCanEat="vegetarian"
-        else
-            whoCanEat="meat"
-        return {
-            "id": recipe["id"],
-            "name": recipe["title"],
-            "timeToMake": recipe["readyInMinutes"],
-            "popularity": recipe["aggregateLikes"],
-            "whoCanEatVegOrNot": whoCanEat,
-            "glutenFree": recipe["glutenFree"],
-            "image": recipe["image"],
-            "wasWatchedByUserBefore": true, //need to change here
-            "wasSavedByUser": true // need to change here
-        }
-    });
+    return allResults.map(extractRecipeSummaryFromAPIResult);
 }
 
 async function getUserRecipes(user_name, query_type) {
@@ -114,8 +103,12 @@ async function getUserRecipes(user_name, query_type) {
 
 async function lastWatchedRecipes(user_name) {
     let recipeIDS = await dbUtils.execQuery(
-        `SELECT TOP 3 recipeID from watchedRecipes WHERE username = '${user_name}' ORDER BY watchTime DESC`
+        `SELECT recipeID from watchedRecipes WHERE username = '${user_name}' ORDER BY watchTime DESC LIMIT 3 `
     )
+    return await Promise.all(recipeIDS.map(async function(recipe_id_dict) {
+        let recipe_info = await getRecipeInformation(recipe_id_dict["recipeID"]);
+        return extractRecipeSummaryFromAPIResult(recipe_info.data)
+    }))
 }
 
 async function favoriteRecipes(user_name){
@@ -143,9 +136,25 @@ async function addRecepie(recipe_details){
     numberOfMeals = recipe_details.numberOfMeals
     return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}', '${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}')`);
     // return "success"
+}
+
+async function getFullRecipe(user_name, recipeId) {
+    let recipeToReturn;
+    if (recipeId.startsWith("RE"))
+        recipeToReturn = await dbUtils.getRecipeFullDetails(recipeId)
+    else {
+        let recipe_info = await getRecipeInformation(recipeId);
+        recipeToReturn = extractFullRecipeDetailsFromAPIResult(recipe_info.data)
+    }
+    if (recipeToReturn) {
+        await dbUtils.updateWatchedRecipe(user_name, recipeId)
+    }
+    return recipeToReturn
 
 }
-exports.getUserRecipes = getUserRecipes;
+
+exports.getFullRecipe = getFullRecipe
+exports.getUserRecipes = getUserRecipes
 exports.getRecipesByName = getRecipesByName;
 exports.getRecipeDetails = getRecipeDetails;
 exports.addRecepie = addRecepie;
