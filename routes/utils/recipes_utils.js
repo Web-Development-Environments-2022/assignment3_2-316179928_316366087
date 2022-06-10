@@ -29,7 +29,7 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         whoCanEat="meat"
     let x = await wasRecipeWatchedByUser(username, APIRecipe["recipeID"])
     let y = await wasRecipeSavedByUser(username, APIRecipe["recipeID"])
-    return {
+    let check = {
         "id": APIRecipe["recipeID"],
         "name": APIRecipe["title"],
         "timeToMake": APIRecipe["readyInMinutes"],
@@ -40,7 +40,10 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         "wasWatchedByUserBefore": x, 
         "wasSavedByUser": y
     }
+    console.log(check)
+    return check
 }
+
 
 async function wasRecipeWatchedByUser(username, recipeID) {
     return (await dbUtils.execQuery(`SELECT * FROM watchedRecipes WHERE username = '${username}' AND recipeID = '${recipeID}'`)).length>0
@@ -138,8 +141,9 @@ async function getRecipesCreatedByUser(user_name){
 }
 
 async function addRecepie(recipe_details){
-    ID = recipe_details.recipeID
-    user_name = "ido"
+    let dbnumber = await getDbNumber()
+    ID = "RE" + recipe_details.recipeID
+    user_name = recipe_details.username
     n = recipe_details.name
     timeToMake = recipe_details.timeToMake
     whoCanEatVegOrNot = recipe_details.whoCanEatVegOrNot,
@@ -147,7 +151,6 @@ async function addRecepie(recipe_details){
     ingridients = recipe_details.ingridients,
     instructions = recipe_details.instructions,
     numberOfMeals = recipe_details.numberOfMeals
-    let dbnumber = await getDbNumber()
     return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}','${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}','${dbnumber}')`);
 }
 

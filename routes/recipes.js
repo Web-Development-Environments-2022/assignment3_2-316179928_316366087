@@ -20,7 +20,7 @@ router.get("/", (req, res) => res.send("im here"));
 
 router.get("/getRandomRecipes",async (req, res, next) => {
     try {
-      let user_name = "eitan"
+      let user_name = req.session.username
       random_recipies = await recipes_utils.getRandomRecipes(user_name);
       res.send(random_recipies)
     }
@@ -33,7 +33,7 @@ router.get("/getRandomRecipes",async (req, res, next) => {
  */
  router.get("/searchRecipe", async (req, res, next) => { // maybe need to add here search query to cookies
     try {
-        let user_name = "eitan"
+        let user_name = req.session.username
         const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes, req.query.cuisine, req.query.diet, req.query.intolerances, user_name);
         res.send(recipes);
     } catch (error) {
@@ -43,7 +43,7 @@ router.get("/getRandomRecipes",async (req, res, next) => {
 
 router.get("/getUserRecipes", async(req, res, next) => {
     try {
-        let user_name = "eitan" //change to cookie
+        let user_name = req.session.username //change to cookie
         const recipes = await recipes_utils.getUserRecipes(user_name, req.query.type);
         res.send(recipes);
     } catch (error) {
@@ -53,7 +53,7 @@ router.get("/getUserRecipes", async(req, res, next) => {
 
 router.get("/recipe", async(req, res, next) => {
     try {
-        let user_name = "eitan"
+        let user_name = req.session.username
         const fullRecipe = await recipes_utils.getFullRecipe(user_name, req.query.recipeId)
         res.send(fullRecipe)
     } catch (error) {
