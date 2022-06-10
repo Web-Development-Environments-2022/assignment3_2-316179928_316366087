@@ -47,11 +47,11 @@ return returnValue
 }
 
 exports.getRecipeFullDetails = async function(recipeId) {
-    return await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`)
+    return (await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`))[0]
 }
 
 exports.getRecipeSummary = async function(recipeID) {
-    return await execQuery(`SELECT recipeId,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`)
+    return (await execQuery(`SELECT recipeID,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`))[0]
 }
 
 exports.updateWatchedRecipe = async function(user_name, recipeId) {

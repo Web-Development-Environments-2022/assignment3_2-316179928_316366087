@@ -27,10 +27,10 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         whoCanEat="vegetarian"
     else
         whoCanEat="meat"
-    let x = await wasRecipeWatchedByUser(username, APIRecipe["id"])
-    let y = await wasRecipeSavedByUser(username, APIRecipe["id"])
+    let x = await wasRecipeWatchedByUser(username, APIRecipe["recipeID"])
+    let y = await wasRecipeSavedByUser(username, APIRecipe["recipeID"])
     return {
-        "id": APIRecipe["id"],
+        "id": APIRecipe["recipeID"],
         "name": APIRecipe["title"],
         "timeToMake": APIRecipe["readyInMinutes"],
         "popularity": APIRecipe["aggregateLikes"],
@@ -145,10 +145,11 @@ async function favoriteRecipes(user_name){
 }
 
 async function getRecipesCreatedByUser(user_name){
-    return await dbUtils.execQuery(
-        `SELECT recipeId,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree,ingridients,instrucions,numberoOfMeals FROM recipes WHERE username = '${user_name}'`
+    let recipeIDS = await dbUtils.execQuery(
+        `SELECT recipeID FROM recipes WHERE username = '${user_name}'`
     )
-    
+    recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
+    return await Promise.all(recipeIDS.map(getRecipeSummaryFromID))    
 }
 
 async function addRecepie(recipe_details){
