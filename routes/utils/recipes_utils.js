@@ -10,7 +10,7 @@ const api_domain = "https://api.spoonacular.com/recipes";
  */
 
 
-function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
+async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
     let whoCanEat;
     if (APIRecipe["vegan"])
         whoCanEat="vegan";
@@ -18,6 +18,8 @@ function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         whoCanEat="vegetarian"
     else
         whoCanEat="meat"
+    let x = await wasRecipeWatchedByUser(username, APIRecipe["id"])
+    let y = await wasRecipeSavedByUser(username, APIRecipe["id"])
     return {
         "id": APIRecipe["id"],
         "name": APIRecipe["title"],
@@ -26,8 +28,8 @@ function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         "whoCanEatVegOrNot": whoCanEat,
         "glutenFree": APIRecipe["glutenFree"],
         "image": APIRecipe["image"],
-        "wasWatchedByUserBefore": await wasRecipeWatchedByUser(username, recipeID), 
-        "wasSavedByUser": await wasRecipeSavedByUser(username, recipeID)
+        "wasWatchedByUserBefore": x, 
+        "wasSavedByUser": y
     }
 }
 
@@ -39,8 +41,8 @@ async function wasRecipeSavedByUser(username, recipeID) {
     return (await dbUtils.execQuery(`SELECT * FROM favoriterecipes WHERE username = '${username}' AND recipeID = '${recipeID}'`)).length>0
 }
 
-function extractFullRecipeDetailsFromAPIResult(recipe_info, username) {
-    recipeFullDetails = extractRecipeSummaryFromAPIResult(recipe_info, username)
+async function extractFullRecipeDetailsFromAPIResult(recipe_info, username) {
+    recipeFullDetails = await extractRecipeSummaryFromAPIResult(recipe_info, username)
     recipeFullDetails["ingridients"] = recipe_info["extendedIngredients"].map(function(ingridientDict) {
         return ingridientDict["original"]
     }).join("\n")
@@ -135,7 +137,7 @@ async function favoriteRecipes(user_name){
 
 async function getRecipesCreatedByUser(user_name){
     return await dbUtils.execQuery(
-        `SELECT recipeID FROM recipes WHERE username = '${user_name}'`
+        `SELECT recipeId,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree,ingridients,instrucions,numberoOfMeals FROM recipes WHERE username = '${user_name}'`
     )
     
 }
@@ -167,7 +169,7 @@ async function getFullRecipe(user_name, recipeId) {
         recipeToReturn = await dbUtils.getRecipeFullDetails(recipeId)
     else {
         let recipe_info = await getRecipeInformation(recipeId);
-        recipeToReturn = extractFullRecipeDetailsFromAPIResult(recipe_info.data, user_name)
+        recipeToReturn = await extractFullRecipeDetailsFromAPIResult(recipe_info.data, user_name)
     }
     if (recipeToReturn) {
         await dbUtils.updateWatchedRecipe(user_name, recipeId)

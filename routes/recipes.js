@@ -23,17 +23,16 @@ router.post('/recipe', async (req,res,next) => {
     try{
       let recipe_details = {
         recipeID: req.body.recipeID,
-        // username: req.session.username,
+        username: req.session.username,
         name: req.body.name,
+        popularity: 10,
         timeToMake: req.body.timeToMake,
         whoCanEatVegOrNot: req.body.whoCanEatVegOrNot,
         glutenFree: req.body.glutenFree,
         ingridients: req.body.ingridients,
         instructions: req.body.instructions,
         numberOfMeals: req.body.numberOfMeals,
-        // dbnumber: 0
       }
-      recipe_details.username = "ido"
       if (hasNull(recipe_details)){
         throw { status: 409, message: "please send full details" };
       }

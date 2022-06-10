@@ -21,7 +21,7 @@ tags:
 - name: users
   description: Operations for logging in and registering
 paths:
-  /getRecipeSummerization:
+  /recipes/getRecipeSummerization:
     get:
       tags:
       - recipies
@@ -48,7 +48,7 @@ paths:
                 $ref: '#/components/schemas/recipeSummrization'
         "404":
           description: recipe id not found.
-  /getRandomRecipies:
+  /recipes/getRandomRecipies:
     get:
       tags:
       - recipies
@@ -67,7 +67,7 @@ paths:
                   - $ref: '#/components/schemas/recipeSummrization'
         "404":
           description: recipe not found.
-  /getUserRecipies:
+  /recipes/getUserRecipies:
     get:
       tags:
       - recipies
@@ -105,7 +105,7 @@ paths:
                   - $ref: '#/components/schemas/recipeSummrization'
         "404":
           description: recipe not found.
-  /searchRecipe:
+  /recipes/searchRecipe:
     get:
       tags:
       - recipies
@@ -134,7 +134,7 @@ paths:
                   - $ref: '#/components/schemas/recipeSummrization'
         "404":
           description: didn't found results for your search.
-  /recipe:
+  /recipes/recipe:
     get:
       tags:
       - recipies
@@ -192,7 +192,7 @@ paths:
                 type: object
         "404":
           description: Resources didnt found.
-  /register:
+  /Register:
     post:
       tags:
       - users
