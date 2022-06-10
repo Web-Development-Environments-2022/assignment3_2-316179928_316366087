@@ -10,7 +10,7 @@ const api_domain = "https://api.spoonacular.com/recipes";
  */
 
 
-function extractRecipeSummaryFromAPIResult(APIRecipe) {
+function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
     let whoCanEat;
     if (APIRecipe["vegan"])
         whoCanEat="vegan";
@@ -26,13 +26,21 @@ function extractRecipeSummaryFromAPIResult(APIRecipe) {
         "whoCanEatVegOrNot": whoCanEat,
         "glutenFree": APIRecipe["glutenFree"],
         "image": APIRecipe["image"],
-        "wasWatchedByUserBefore": true, //need to change here
-        "wasSavedByUser": true // need to change here
+        "wasWatchedByUserBefore": await wasRecipeWatchedByUser(username, recipeID), 
+        "wasSavedByUser": await wasRecipeSavedByUser(username, recipeID)
     }
 }
 
-function extractFullRecipeDetailsFromAPIResult(recipe_info) {
-    recipeFullDetails = extractRecipeSummaryFromAPIResult(recipe_info)
+async function wasRecipeWatchedByUser(username, recipeID) {
+    return (await dbUtils.execQuery(`SELECT * FROM watchedRecipes WHERE username = '${username}' AND recipeID = '${recipeID}'`)).length>0
+}
+
+async function wasRecipeSavedByUser(username, recipeID) {
+    return (await dbUtils.execQuery(`SELECT * FROM favoriterecipes WHERE username = '${username}' AND recipeID = '${recipeID}'`)).length>0
+}
+
+function extractFullRecipeDetailsFromAPIResult(recipe_info, username) {
+    recipeFullDetails = extractRecipeSummaryFromAPIResult(recipe_info, username)
     recipeFullDetails["ingridients"] = recipe_info["extendedIngredients"].map(function(ingridientDict) {
         return ingridientDict["original"]
     }).join("\n")
@@ -41,14 +49,14 @@ function extractFullRecipeDetailsFromAPIResult(recipe_info) {
     return recipeFullDetails
 }
 
-async function getRandomRecipes() {
+async function getRandomRecipes(username) {
     let random_recipies = (await axios.get(`${api_domain}/random`, {
         params: {
             apiKey: process.env.api_token,
             number: 3
         }
     })).data["recipes"];
-    return random_recipies.map(extractRecipeSummaryFromAPIResult);
+    return random_recipies.map(function(x) { return extractRecipeSummaryFromAPIResult(x, username)});
 }
 
 async function getRecipeInformation(recipe_id) {
@@ -76,16 +84,24 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
-async function getRecipesByName(recipeSearchName, numberOfRecipes) {
+async function getRecipesByName(recipeSearchName, numberOfRecipes, cuisine, diet, intolerances, username) {
+    let queryParams = {
+        query: recipeSearchName,
+        apiKey: process.env.spooncular_apiKey,
+        number: numberOfRecipes,
+        addRecipeInformation: true
+    }
+    if (cuisine!=undefined)
+        queryParams["cuisine"] = cuisine
+    if (diet!=undefined)
+        queryParams["diet"] = cuisine
+    if (intolerances!=null)
+        queryParams["intolerances"] = cuisine
+
     let allResults = (await axios.get(`${api_domain}/complexSearch`, {
-        params: {
-            query: recipeSearchName,
-            apiKey: process.env.spooncular_apiKey,
-            number: numberOfRecipes,
-            addRecipeInformation: true
-        }
+        params: queryParams
     })).data["results"];
-    return allResults.map(extractRecipeSummaryFromAPIResult);
+    return allResults.map(function(x) { return extractRecipeSummaryFromAPIResult(x, username)});
 }
 
 async function getUserRecipes(user_name, query_type) {
@@ -107,7 +123,7 @@ async function lastWatchedRecipes(user_name) {
     )
     return await Promise.all(recipeIDS.map(async function(recipe_id_dict) {
         let recipe_info = await getRecipeInformation(recipe_id_dict["recipeID"]);
-        return extractRecipeSummaryFromAPIResult(recipe_info.data)
+        return extractRecipeSummaryFromAPIResult(recipe_info.data, user_name)
     }))
 }
 
@@ -151,7 +167,7 @@ async function getFullRecipe(user_name, recipeId) {
         recipeToReturn = await dbUtils.getRecipeFullDetails(recipeId)
     else {
         let recipe_info = await getRecipeInformation(recipeId);
-        recipeToReturn = extractFullRecipeDetailsFromAPIResult(recipe_info.data)
+        recipeToReturn = extractFullRecipeDetailsFromAPIResult(recipe_info.data, user_name)
     }
     if (recipeToReturn) {
         await dbUtils.updateWatchedRecipe(user_name, recipeId)
