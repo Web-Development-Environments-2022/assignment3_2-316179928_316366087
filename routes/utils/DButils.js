@@ -36,3 +36,16 @@ const connection = await MySql.connection();
 }
 return returnValue
 }
+
+async function getRecipeFullDetails(recipeId) {
+    let recipe = await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`)
+
+}
+
+exports.updateWatchedRecipe = async function(user_name, recipeId) {
+    await execQuery(`DELETE FROM watchedRecipes WHERE recipeID='${recipeId}' AND username='${user_name}'`)
+    await execQuery(`insert into watchedRecipes values ('${user_name}', '${recipeId}', '${new Date().toISOString().slice(0, 19).replace('T', ' ')}')`)
+}
+
+// exports.getRecipeFullDetails = getRecipeFullDetails
+// exports.updateWatchedRecipe = updateWatchedRecipe
