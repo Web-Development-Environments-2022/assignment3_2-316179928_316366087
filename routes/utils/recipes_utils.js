@@ -126,7 +126,7 @@ async function getRecipesCreatedByUser(user_name){
 
 async function addRecepie(recipe_details){
     ID = recipe_details.recipeID
-    user_name = recipe_details.user_name
+    user_name = "ido"
     n = recipe_details.name
     timeToMake = recipe_details.timeToMake
     whoCanEatVegOrNot = recipe_details.whoCanEatVegOrNot,
@@ -134,8 +134,15 @@ async function addRecepie(recipe_details){
     ingridients = recipe_details.ingridients,
     instructions = recipe_details.instructions,
     numberOfMeals = recipe_details.numberOfMeals
-    return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}', '${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}')`);
+    let dbnumber = await getDbNumber()
+    return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}','${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}','${dbnumber}')`);
     // return "success"
+}
+
+async function getDbNumber(){
+    let lastDBNumber = await dbUtils.execQuery(`SELECT dbnumber FROM recipes ORDER BY dbnumber DESC LIMIT 1`)
+    lastDBNumber = lastDBNumber[0]["dbnumber"]
+    return lastDBNumber + 1
 }
 
 async function getFullRecipe(user_name, recipeId) {
