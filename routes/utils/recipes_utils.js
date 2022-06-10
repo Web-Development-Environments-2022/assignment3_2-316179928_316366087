@@ -70,21 +70,6 @@ async function getRandomRecipes(username) {
     return random_recipies.map(function(x) { return extractRecipeSummaryFromAPIResult(x, username)});
 }
 
-// async function getRecipeDetails(recipe_id) {
-//     let recipe_info = await getRecipeInformation(recipe_id);
-//     let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
-
-//     return {
-//         id: id,
-//         title: title,
-//         readyInMinutes: readyInMinutes,
-//         image: image,
-//         popularity: aggregateLikes,
-//         vegan: vegan,
-//         vegetarian: vegetarian,
-//         glutenFree: glutenFree,
-//     }
-// }
 
 async function getRecipesByName(recipeSearchName, numberOfRecipes, cuisine, diet, intolerances, username) {
     let queryParams = {
@@ -164,7 +149,6 @@ async function addRecepie(recipe_details){
     numberOfMeals = recipe_details.numberOfMeals
     let dbnumber = await getDbNumber()
     return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}','${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}','${dbnumber}')`);
-    // return "success"
 }
 
 async function getDbNumber(){
@@ -191,7 +175,6 @@ async function getFullRecipe(user_name, recipeId) {
 exports.getFullRecipe = getFullRecipe
 exports.getUserRecipes = getUserRecipes
 exports.getRecipesByName = getRecipesByName;
-exports.getRecipeDetails = getRecipeDetails;
 exports.addRecepie = addRecepie;
 exports.getRandomRecipes = getRandomRecipes;
 
