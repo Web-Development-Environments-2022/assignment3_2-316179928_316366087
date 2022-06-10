@@ -336,7 +336,7 @@ components:
     user:
       type: object
       properties:
-        userName:
+        username:
           maxLength: 8
           minLength: 3
           type: string
@@ -384,5 +384,5 @@ components:
         password:
           type: string
       example:
-        userName: yossi
+        username: yossi
         password: yos@55
