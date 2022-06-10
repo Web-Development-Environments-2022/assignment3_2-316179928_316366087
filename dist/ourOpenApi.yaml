@@ -16,43 +16,16 @@ servers:
 # - url: https://virtserver.swaggerhub.com/ehud-m/Assignment3/1.0.0
   description: SwaggerHub API Auto Mocking
 tags:
-- name: recipies
-  description: Operations for getting and uploading recipies
+- name: recipes
+  description: Operations for getting and uploading recipes
 - name: users
   description: Operations for logging in and registering
 paths:
-  /recipes/getRecipeSummerization:
+  /recipes/getRandomRecipes:
     get:
       tags:
-      - recipies
-      summary: this method will return summrize recipe
-      description: |
-        By passing in the appropriate options, you can search for
-        available recipe in the system
-      operationId: getRecipeSummerization
-      parameters:
-      - name: recipeId
-        in: query
-        description: pass an id of recipe to show
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: search results matching criteria
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/recipeSummrization'
-        "404":
-          description: recipe id not found.
-  /recipes/getRandomRecipies:
-    get:
-      tags:
-      - recipies
-      summary: this method will generate 3 random recipies.
+      - recipes
+      summary: this method will generate 3 random recipes.
       description: 3 recipes has been generated.
       operationId: getRandomRecipe
       responses:
@@ -67,21 +40,14 @@ paths:
                   - $ref: '#/components/schemas/recipeSummrization'
         "404":
           description: recipe not found.
-  /recipes/getUserRecipies:
+  /recipes/getUserRecipes:
     get:
       tags:
-      - recipies
+      - recipes
       summary: returns an array of recipe summerizations
       description: this method will return either 3 last watched recipes by current user, favorite user recipes or all recipes created by the user, according to the parameter 'type'
-      operationId: getUserRecipies
+      operationId: getUserRecipes
       parameters:
-      - name: userName
-        in: query
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
       - name: type
         in: query
         required: true
@@ -108,7 +74,7 @@ paths:
   /recipes/searchRecipe:
     get:
       tags:
-      - recipies
+      - recipes
       summary: Search a recipe
       description: This method will search a recipe in the db, according to the query specified by the user
       operationId: searchRecipe
@@ -121,7 +87,87 @@ paths:
         explode: true
         schema:
           type: string
-          example: '["name","numberOfRecipes","userName","websiteName","filter"]'
+          example: pasta
+      - name: numberOfRecipes
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 5
+          - 10
+          - 15
+      - name: cuisine
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - African
+          - American
+          - British
+          - Cajun
+          - Caribbean
+          - Chinese
+          - Eastern European
+          - European
+          - French
+          - German
+          - Greek
+          - Indian
+          - Irish
+          - Italian
+          - Japanese
+          - Jewish
+          - Korean
+          - Latin American
+          - Mediterranean
+          - Mexican
+          - Middle Eastern
+          - Nordic
+          - Southern
+          - Spanish
+          - Thai
+          - Vietnamese
+      - name: diet
+        in: query
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - Gluten Free
+          - Ketogenic
+          - Vegetarian
+          - Lacto-Vegetarian
+          - Ovo-Vegetarian
+          - Vegan
+          - Pescetarian
+          - Paleo
+          - Primal
+          - Low FODMAP
+          - Whole30
+      - name: intolerances
+        in: query
+        explode: true
+        style: form
+        schema:
+          type: string
+          enum:
+          - Dairy
+          - Egg
+          - Gluten
+          - Grain
+          - Peanut
+          - Seafood
+          - Sesame
+          - Shellfish
+          - Soy
+          - Sulfite
+          - Tree Nut
+          - Wheat
       responses:
         "200":
           description: recipes has been found.
@@ -137,7 +183,7 @@ paths:
   /recipes/recipe:
     get:
       tags:
-      - recipies
+      - recipes
       summary: this method will return clicked recipe.
       description: recipe has been returned.
       operationId: getClickedRecipe
@@ -161,7 +207,7 @@ paths:
           description: recipe id not found.
     post:
       tags:
-      - recipies
+      - recipes
       summary: this method will add a recipe to the db.
       operationId: addRecipe
       requestBody:
@@ -244,9 +290,9 @@ components:
       type: object
       properties:
         id:
-          type: string
+          recipeID: string
           format: recipeId
-          example: recipe-1234
+          example: RE1234
         name:
           type: string
           example: Pizza
@@ -304,7 +350,7 @@ components:
       - whoCanEatVegOrNot
       type: object
       properties:
-        name:
+        name: 
           type: string
           example: Pizza
         timeToMake:

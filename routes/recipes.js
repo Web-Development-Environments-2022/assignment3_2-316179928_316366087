@@ -5,6 +5,31 @@ const recipes_utils = require("./utils/recipes_utils");
 
 router.get("/", (req, res) => res.send("im here"));
 
+/**
+ * This path return a full details of number of recipes by their name, using the spooncular api
+ */
+ router.get("/searchRecipe", async (req, res, next) => { // maybe need to add here search query to cookies
+  try {
+      let user_name = req.session.username
+      const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes, req.query.cuisine, req.query.diet, req.query.intolerances, user_name);
+      res.send(recipes);
+  } catch (error) {
+      next(error);
+  }
+});
+
+router.use(async function (req, res, next) {
+  if (req.session && req.session.user_id) {
+    DButils.execQuery("SELECT user_id FROM users").then((users) => {
+      if (users.find((x) => x.user_id === req.session.user_id)) {
+        req.user_id = req.session.user_id;
+        next();
+      }
+    }).catch(err => next(err));
+  } else {
+    res.sendStatus(401);
+  }
+});
 
 /**
  * This path returns a full details of a recipe by its id
@@ -21,6 +46,9 @@ router.get("/", (req, res) => res.send("im here"));
 router.get("/getRandomRecipes",async (req, res, next) => {
     try {
       let user_name = req.session.username
+      if (user_name == null){
+        user_name = "stam"
+      }
       random_recipies = await recipes_utils.getRandomRecipes(user_name);
       res.send(random_recipies)
     }
@@ -28,18 +56,7 @@ router.get("/getRandomRecipes",async (req, res, next) => {
       next(error)
     }
   });
-/**
- * This path return a full details of number of recipes by their name, using the spooncular api
- */
- router.get("/searchRecipe", async (req, res, next) => { // maybe need to add here search query to cookies
-    try {
-        let user_name = req.session.username
-        const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes, req.query.cuisine, req.query.diet, req.query.intolerances, user_name);
-        res.send(recipes);
-    } catch (error) {
-        next(error);
-    }
-});
+
 
 router.get("/getUserRecipes", async(req, res, next) => {
     try {

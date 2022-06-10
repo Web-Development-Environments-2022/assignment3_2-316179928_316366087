@@ -27,10 +27,10 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         whoCanEat="vegetarian"
     else
         whoCanEat="meat"
-    let x = await wasRecipeWatchedByUser(username, APIRecipe["recipeID"])
-    let y = await wasRecipeSavedByUser(username, APIRecipe["recipeID"])
+    let x = await wasRecipeWatchedByUser(username, APIRecipe["id"])
+    let y = await wasRecipeSavedByUser(username, APIRecipe["id"])
     let check = {
-        "id": APIRecipe["recipeID"],
+        "recipeID": APIRecipe["id"],
         "name": APIRecipe["title"],
         "timeToMake": APIRecipe["readyInMinutes"],
         "popularity": APIRecipe["aggregateLikes"],
@@ -66,11 +66,11 @@ async function extractFullRecipeDetailsFromAPIResult(recipe_info, username) {
 async function getRandomRecipes(username) {
     let random_recipies = (await axios.get(`${api_domain}/random`, {
         params: {
-            apiKey: process.env.api_token,
+            apiKey: process.env.spooncular_apiKey,
             number: 3
         }
     })).data["recipes"];
-    return random_recipies.map(function(x) { return extractRecipeSummaryFromAPIResult(x, username)});
+    return Promise.all(random_recipies.map(async function(x) { return await extractRecipeSummaryFromAPIResult(x, username)}));
 }
 
 
@@ -91,7 +91,7 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes, cuisine, diet
     let allResults = (await axios.get(`${api_domain}/complexSearch`, {
         params: queryParams
     })).data["results"];
-    return allResults.map(function(x) { return extractRecipeSummaryFromAPIResult(x, username)});
+    return Promise.all(allResults.map(async function(x) { return await extractRecipeSummaryFromAPIResult(x, username)}));
 }
 
 async function getUserRecipes(user_name, query_type) {
