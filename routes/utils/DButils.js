@@ -46,9 +46,12 @@ const connection = await MySql.connection();
 return returnValue
 }
 
-async function getRecipeFullDetails(recipeId) {
-    let recipe = await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`)
+exports.getRecipeFullDetails = async function(recipeId) {
+    return await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`)
+}
 
+exports.getRecipeSummary = async function(recipeID) {
+    return await execQuery(`SELECT recipeId,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`)
 }
 
 exports.updateWatchedRecipe = async function(user_name, recipeId) {
