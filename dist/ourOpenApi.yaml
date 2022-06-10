@@ -11,7 +11,7 @@ info:
   version: 1.0.0
 servers:
 # local:
-- url: "http://127.0.0.1:3000"
+- url: "http://127.0.0.1:80"
 # remote:
 # - url: https://virtserver.swaggerhub.com/ehud-m/Assignment3/1.0.0
   description: SwaggerHub API Auto Mocking
@@ -210,7 +210,7 @@ paths:
           description: user register was successful
         "403":
           description: user name already exists
-  /login:
+  /Login:
     post:
       tags:
       - users
@@ -379,7 +379,7 @@ components:
     login_body:
       type: object
       properties:
-        userName:
+        username:
           type: string
         password:
           type: string
