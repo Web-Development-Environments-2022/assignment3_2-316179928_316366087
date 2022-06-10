@@ -1,5 +1,6 @@
 var express = require("express");
 var router = express.Router();
+const DButils = require("./utils/DButils");
 const recipes_utils = require("./utils/recipes_utils");
 
 router.get("/", (req, res) => res.send("im here"));
@@ -18,9 +19,10 @@ router.get("/:recipeId", async (req, res, next) => {
 });
 
 router.post('/recipe', async (req,res,next) => {
-    let username = "ehud1"
+    let user = "ehud1"
     try{
       let recipe_details = {
+        recipeID: req.body.recipeID,
         name: req.body.name,
         timeToMake: req.body.timeToMake,
         whoCanEatVegOrNot: req.body.whoCanEatVegOrNot,
@@ -29,12 +31,15 @@ router.post('/recipe', async (req,res,next) => {
         instructions: req.body.instructions,
         numberOfMeals: req.body.numberOfMeals
       }
-      recipes_from_db = await DButils.existsInDB("name", "recipes",username);
-      for (rec in recipes_from_db){
-        if (rec.name === recipe_details.name){
-          throw { status: 409, message: "recipe exists in db, please insert another name" };
-        }
+      if (hasNull(recipe_details)){
+        throw { status: 409, message: "please send full details" };
       }
+      recipe_details.username = user
+      console.log(await DButils.existsInDB("recipeID", "recipes",recipe_details.recipeID))
+      if(await DButils.existsInDB("recipeID", "recipes",recipe_details.recipeID)){
+        throw { status: 409, message: "recipe exists in db, please insert another name" };
+      }
+      
       result = await recipes_utils.addRecepie(recipe_details);
       res.status(200).send("The Recipe successfully added to DB");
     }
@@ -44,5 +49,13 @@ router.post('/recipe', async (req,res,next) => {
     
   
   });
+
+  function hasNull(target) {
+    for (var member in target) {
+        if (target[member] == null)
+            return true;
+    }
+    return false;
+}
 
 module.exports = router;

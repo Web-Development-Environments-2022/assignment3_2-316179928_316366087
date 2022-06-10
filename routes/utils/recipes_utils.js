@@ -118,7 +118,22 @@ async function lastWatchedRecipes(user_name) {
     )
 }
 
+async function favoriteRecipes(user_name){
+    return await dbUtils.execQuery(
+        `SELECT recipeID FROM FavoriteRecipes WHERE username = '${user_name}'`
+    )
+}
+
+async function getRecipesCreatedByUser(user_name){
+    return await dbUtils.execQuery(
+        `SELECT recipeID FROM recipes WHERE username = '${user_name}'`
+    )
+    
+}
+
 async function addRecepie(recipe_details){
+    ID = recipe_details.recipeID
+    user_name = recipe_details.user_name
     n = recipe_details.name
     timeToMake = recipe_details.timeToMake
     whoCanEatVegOrNot = recipe_details.whoCanEatVegOrNot,
@@ -126,10 +141,11 @@ async function addRecepie(recipe_details){
     ingridients = recipe_details.ingridients,
     instructions = recipe_details.instructions,
     numberOfMeals = recipe_details.numberOfMeals
-    return await DButils.execQuery(`insert into recipes values ('${n}','${timeToMake}', '${whoCanEatVegOrNot}', '${glutenFree}', '${ingridients}','${instructions}','${numberOfMeals}')`);
+    return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}', '${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}')`);
     // return "success"
 
 }
+exports.getUserRecipes = getUserRecipes;
 exports.getRecipesByName = getRecipesByName;
 exports.getRecipeDetails = getRecipeDetails;
 exports.addRecepie = addRecepie;
