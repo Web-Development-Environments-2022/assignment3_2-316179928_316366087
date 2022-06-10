@@ -3,7 +3,8 @@ var router = express.Router();
 const recipes_utils = require("./utils/recipes_utils");
 router.get("/getRandomRecipes",async (req, res, next) => {
     try {
-      random_recipies = await recipes_utils.getRandomRecipes();
+      let user_name = "eitan"
+      random_recipies = await recipes_utils.getRandomRecipes(user_name);
       res.send(random_recipies)
     }
     catch(error){
@@ -15,7 +16,8 @@ router.get("/getRandomRecipes",async (req, res, next) => {
  */
  router.get("/searchRecipe", async (req, res, next) => { // maybe need to add here search query to cookies
     try {
-        const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes);
+        let user_name = "eitan"
+        const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes, req.query.cuisine, req.query.diet, req.query.intolerances, user_name);
         res.send(recipes);
     } catch (error) {
         next(error);
