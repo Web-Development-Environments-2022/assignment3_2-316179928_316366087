@@ -1,6 +1,7 @@
 *.pptx
 node_modules
 .env
+routes/utils/MySql.js
 .vscode
 #codes/routes/recipes.js
 #codes\routes\recipes.js

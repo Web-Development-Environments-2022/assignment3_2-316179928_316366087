@@ -38,6 +38,8 @@ paths:
                 items:
                   oneOf:
                   - $ref: '#/components/schemas/recipeSummrization'
+        "401":
+          description: User not logged-in.
         "404":
           description: recipe not found.
   /recipes/getUserRecipes:
@@ -69,6 +71,8 @@ paths:
                 items:
                   oneOf:
                   - $ref: '#/components/schemas/recipeSummrization'
+        "401":
+          description: User not logged-in.
         "404":
           description: recipe not found.
   /recipes/searchRecipe:
@@ -203,6 +207,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/inline_response_200'
+        "401":
+          description: User not logged-in.
         "404":
           description: recipe id not found.
     post:
@@ -219,6 +225,8 @@ paths:
       responses:
         "200":
           description: Recipe was added successfully
+        "401":
+          description: User not logged-in.
         "403":
           description: couldn't register recipe to db
   /load:
@@ -289,18 +297,17 @@ components:
       - whoCanEatVegOrNot
       type: object
       properties:
-        id:
-          recipeID: string
-          format: recipeId
-          example: RE1234
+        recipeID:
+          type: string
+          example: 1234
         name:
           type: string
           example: Pizza
         timeToMake:
-          type: string
-          description: time to make the recipe
-          format: time
-          example: 20:00m
+          type: integer
+          description: minutes to make the recipe
+          format: int32
+          example: 20
         popularity:
           type: integer
           description: number of likes
@@ -308,15 +315,19 @@ components:
           example: 1234
         whoCanEatVegOrNot:
           type: string
+          description: Who can eat this meal
           enum:
-          - vegeterian
+          - vegetarian
           - vegan
-          - meetLovers
+          - meatLovers
         glutenFree:
+          description: is the meal gluten free
           type: boolean
         wasWatchedByUserBefore:
+          description: was this recipe watched by the user before
           type: boolean
         wasSavedByUser:
+          description: was this recipe saved by the user to the favorites
           type: boolean
     recipe:
       required:
@@ -388,11 +399,11 @@ components:
           type: string
           description: userName contatins between 3 to 8 letters only
           example: stamuser
-        firstName:
+        firstname:
           type: string
           description: user's first name
           example: stam
-        lastName:
+        lastname:
           type: string
           description: user's last name
           example: lname
@@ -412,7 +423,7 @@ components:
           description: user's email
           format: email
           example: stam@test.com
-        image-url:
+        profilePic:
           type: string
           description: URL of the user's image
           format: URL

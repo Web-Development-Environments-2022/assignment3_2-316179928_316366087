@@ -26,7 +26,7 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
     else if (APIRecipe["vegetarian"])
         whoCanEat="vegetarian"
     else
-        whoCanEat="meat"
+        whoCanEat="meatLovers"
     let x = await wasRecipeWatchedByUser(username, APIRecipe["id"])
     let y = await wasRecipeSavedByUser(username, APIRecipe["id"])
     let check = {
