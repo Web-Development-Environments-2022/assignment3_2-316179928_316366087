@@ -40,7 +40,6 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
         "wasWatchedByUserBefore": x, 
         "wasSavedByUser": y
     }
-    console.log(check)
     return check
 }
 
@@ -112,16 +111,20 @@ async function lastWatchedRecipes(user_name) {
         `SELECT recipeID from watchedRecipes WHERE username = '${user_name}' ORDER BY watchTime DESC LIMIT 3 `
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map(getRecipeSummaryFromID))
+    return await Promise.all(recipeIDS.map( async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))
 }
 
-async function getRecipeSummaryFromID(recipeID) {
-    if (recipeId.startsWith("RE"))
-        recipeToReturn = await dbUtils.getRecipeSummary(recipeId)
+async function getRecipeSummaryFromID(recipeID, user_name) {
+    if (recipeID.startsWith("RE")) {
+        recipeToReturn = await dbUtils.getRecipeSummary(recipeID)
+        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, APIRecipe["id"])
+        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, APIRecipe["id"])        
+    }
     else {
-        let recipe_info = await getRecipeInformation(recipeId);
+        let recipe_info = await getRecipeInformation(recipeID);
         recipeToReturn = extractRecipeSummaryFromAPIResult(recipe_info.data, user_name)
     }
+    return recipeToReturn
 }
 
 async function favoriteRecipes(user_name){
@@ -129,7 +132,7 @@ async function favoriteRecipes(user_name){
         `SELECT recipeID FROM FavoriteRecipes WHERE username = '${user_name}'`
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map(getRecipeSummaryFromID))
+    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))
 }
 
 async function getRecipesCreatedByUser(user_name){
@@ -137,7 +140,7 @@ async function getRecipesCreatedByUser(user_name){
         `SELECT recipeID FROM recipes WHERE username = '${user_name}'`
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map(getRecipeSummaryFromID))    
+    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))    
 }
 
 async function addRecepie(recipe_details){
@@ -162,8 +165,11 @@ async function getDbNumber(){
 
 async function getFullRecipe(user_name, recipeId) {
     let recipeToReturn;
-    if (recipeId.startsWith("RE"))
+    if (recipeId.startsWith("RE")) {
         recipeToReturn = await dbUtils.getRecipeFullDetails(recipeId)
+        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, APIRecipe["id"])
+        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, APIRecipe["id"])        
+    }
     else {
         let recipe_info = await getRecipeInformation(recipeId);
         recipeToReturn = await extractFullRecipeDetailsFromAPIResult(recipe_info.data, user_name)
