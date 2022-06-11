@@ -19,17 +19,17 @@ router.get("/", (req, res) => res.send("im here"));
 });
 
 router.use(async function (req, res, next) {
-  if (req.session && req.session.user_id) {
-    DButils.execQuery("SELECT user_id FROM users").then((users) => {
-      if (users.find((x) => x.user_id === req.session.user_id)) {
-        req.user_id = req.session.user_id;
-        next();
-      }
-    }).catch(err => next(err));
-  } else {
-    res.sendStatus(401);
-  }
-});
+    if (req.session && req.session.username) {
+      DButils.execQuery("SELECT username FROM users").then((users) => {
+        if (users.find((x) => x.username === req.session.username)) {
+          req.username = req.session.username;
+          next();
+        }
+      }).catch(err => next(err));
+    } else {
+      res.sendStatus(401);
+    }
+  });
 
 /**
  * This path returns a full details of a recipe by its id
