@@ -3,6 +3,28 @@ var router = express.Router();
 const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
+const recipes = require("../routes/recipes")
+
+
+router.post("/Logout", function (req, res) {
+  req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
+  res.send({ success: true, message: "logout succeeded" });
+});
+
+
+router.use( async (req, res, next) => {
+  try{
+    
+    if (req.session && req.session.username){
+      throw { status: 408, message: "Please log out before." };
+    }
+    next();
+    
+  }
+  catch (error){
+    next(error);
+  }
+});
 
 router.post("/Register", async (req, res, next) => {
   try {
@@ -18,11 +40,14 @@ router.post("/Register", async (req, res, next) => {
       email: req.body.email,
       profilePic: req.body.profilePic
     }
+    if (hasNull(user_details)){
+      throw { status: 406, message: "please send full details" };
+    }
     let users = [];
     users = await DButils.execQuery("SELECT username from users");
 
     if (users.find((x) => x.username === user_details.username))
-      throw { status: 409, message: "Username taken" };
+      throw { status: 403, message: "Username taken" };
 
     // add the new username
     let hash_password = bcrypt.hashSync(
@@ -68,9 +93,13 @@ router.post("/Login", async (req, res, next) => {
   }
 });
 
-router.post("/Logout", function (req, res) {
-  req.session.reset(); // reset the session info --> send cookie when  req.session == undefined!!
-  res.send({ success: true, message: "logout succeeded" });
-});
 
+
+function hasNull(target) {
+  for (var member in target) {
+      if (target[member] == null)
+          return true;
+  }
+  return false;
+}
 module.exports = router;

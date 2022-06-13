@@ -3,29 +3,29 @@ const MySql = require("./MySql");
 
 exports.existsInDB = async function (column,table,id){
      var dicts = await execQuery("SELECT " + column + " from " + table);
-     let flag = false;
+     var flag = false;
+     console.log(dicts)
+
      dicts.forEach(function f(dict){
-        for (let key in dict){
-          if (dict[key] == id){
-            flag = true;
-          }
-        }
+        if (dict[column] == id.toString()){
+          flag = true;
+        }   
      });
     return flag;
 }
 
 exports.execQuery = async function (query) {
     let returnValue = []
-const connection = await MySql.connection();
+    const connection = await MySql.connection();
     try {
-    await connection.query("START TRANSACTION");
-    returnValue = await connection.query(query);
+      await connection.query("START TRANSACTION");
+      returnValue = await connection.query(query);
   } catch (err) {
-    await connection.query("ROLLBACK");
-    console.log('ROLLBACK at querySignUp', err);
-    throw err;
+      await connection.query("ROLLBACK");
+      console.log('ROLLBACK at querySignUp', err);
+      throw err;
   } finally {
-    await connection.release();
+      await connection.release();
   }
   return returnValue
 }
@@ -47,11 +47,17 @@ return returnValue
 }
 
 exports.getRecipeFullDetails = async function(recipeId) {
-    return (await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`))[0]
+    res = ((await execQuery(`SELECT * FROM recipes WHERE recipeID='${recipeId}'`))[0])
+    if (res == undefined){
+      throw { status: 404, message: "Sorry, we didnt found your recipe." };
+    }
+    delete res["username"]
+    delete res["dbnumber"]
+    return res
 }
 
 exports.getRecipeSummary = async function(recipeID) {
-    return (await execQuery(`SELECT recipeID,name,timeToMake,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`))[0]
+    return (await execQuery(`SELECT recipeID,name,timeToMake,image,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`))[0]
 }
 
 exports.updateWatchedRecipe = async function(user_name, recipeId) {
@@ -61,3 +67,6 @@ exports.updateWatchedRecipe = async function(user_name, recipeId) {
 
 // exports.getRecipeFullDetails = getRecipeFullDetails
 // exports.updateWatchedRecipe = updateWatchedRecipe
+
+
+

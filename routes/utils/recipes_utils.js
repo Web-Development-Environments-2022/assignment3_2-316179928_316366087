@@ -93,60 +93,61 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes, cuisine, diet
     return Promise.all(allResults.map(async function(x) { return await extractRecipeSummaryFromAPIResult(x, username)}));
 }
 
-async function getUserRecipes(user_name, query_type) {
+async function getUserRecipes(username, query_type) {
     switch (query_type) {
         case "lastWatched":
-            return await lastWatchedRecipes(user_name);
+            return await lastWatchedRecipes(username);
         case "favorite":
-            return await favoriteRecipes(user_name);
+            return await favoriteRecipes(username);
         case "created":
-            return await getRecipesCreatedByUser(user_name);
+            return await getRecipesCreatedByUser(username);
         default:
             throw { status: 402, message: "Invalid type of operation." };
     }
 }
 
-async function lastWatchedRecipes(user_name) {
+async function lastWatchedRecipes(username) {
     let recipeIDS = await dbUtils.execQuery(
-        `SELECT recipeID from watchedRecipes WHERE username = '${user_name}' ORDER BY watchTime DESC LIMIT 3 `
+        `SELECT recipeID from watchedRecipes WHERE username = '${username}' ORDER BY watchTime DESC LIMIT 3 `
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map( async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))
+    return await Promise.all(recipeIDS.map( async function(recipeID) {return await getRecipeSummaryFromID(recipeID, username)}))
 }
 
-async function getRecipeSummaryFromID(recipeID, user_name) {
+async function getRecipeSummaryFromID(recipeID, username) {
     if (recipeID.startsWith("RE")) {
         recipeToReturn = await dbUtils.getRecipeSummary(recipeID)
-        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, APIRecipe["id"])
-        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, APIRecipe["id"])        
+        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, recipeID)
+        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, recipeID)        
     }
     else {
         let recipe_info = await getRecipeInformation(recipeID);
-        recipeToReturn = extractRecipeSummaryFromAPIResult(recipe_info.data, user_name)
+        recipeToReturn = extractRecipeSummaryFromAPIResult(recipe_info.data, username)
     }
     return recipeToReturn
 }
 
-async function favoriteRecipes(user_name){
+async function favoriteRecipes(username){
     let recipeIDS = await dbUtils.execQuery(
-        `SELECT recipeID FROM FavoriteRecipes WHERE username = '${user_name}'`
+        `SELECT recipeID FROM FavoriteRecipes WHERE username = '${username}'`
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))
+    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, username)}))
 }
 
-async function getRecipesCreatedByUser(user_name){
+async function getRecipesCreatedByUser(username){
     let recipeIDS = await dbUtils.execQuery(
-        `SELECT recipeID FROM recipes WHERE username = '${user_name}'`
+        `SELECT recipeID FROM recipes WHERE username = '${username}'`
     )
     recipeIDS = recipeIDS.map(function(x) {return x["recipeID"]})
-    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, user_name)}))    
+    return await Promise.all(recipeIDS.map(async function(recipeID) {return await getRecipeSummaryFromID(recipeID, username)}))    
 }
 
 async function addRecepie(recipe_details){
     let dbnumber = await getDbNumber()
-    ID = "RE" + recipe_details.recipeID
-    user_name = recipe_details.username
+    ID = "RE" + dbnumber
+    popularity = recipe_details.popularity
+    username = recipe_details.username
     n = recipe_details.name
     timeToMake = recipe_details.timeToMake
     whoCanEatVegOrNot = recipe_details.whoCanEatVegOrNot,
@@ -154,28 +155,46 @@ async function addRecepie(recipe_details){
     ingridients = recipe_details.ingridients,
     instructions = recipe_details.instructions,
     numberOfMeals = recipe_details.numberOfMeals
-    return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${user_name}', '${n}','${timeToMake}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}','${dbnumber}')`);
+    picture = recipe_details.picture
+
+    if (glutenFree == true)
+        glutenFree = 1
+    else
+        glutenFree = 0
+    return await dbUtils.execQuery(`INSERT INTO recipes values ('${ID}','${username}', '${n}','${timeToMake}','${popularity}', '${whoCanEatVegOrNot}','${glutenFree}','${ingridients}','${instructions}','${numberOfMeals}','${dbnumber}','${picture}')`);
 }
 
 async function getDbNumber(){
     let lastDBNumber = await dbUtils.execQuery(`SELECT dbnumber FROM recipes ORDER BY dbnumber DESC LIMIT 1`)
+    if (lastDBNumber.length == 0){
+        return 0;
+    }
     lastDBNumber = lastDBNumber[0]["dbnumber"]
     return lastDBNumber + 1
 }
 
-async function getFullRecipe(user_name, recipeId) {
+async function getFullRecipe(username, recipeId) {
     let recipeToReturn;
     if (recipeId.startsWith("RE")) {
         recipeToReturn = await dbUtils.getRecipeFullDetails(recipeId)
-        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, APIRecipe["id"])
-        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, APIRecipe["id"])        
+        recipeToReturn["wasWatchedByUserBefore"] = await wasRecipeWatchedByUser(username, recipeId)
+        recipeToReturn["wasSavedByUser"] = await wasRecipeSavedByUser(username, recipeId)        
     }
     else {
-        let recipe_info = await getRecipeInformation(recipeId);
-        recipeToReturn = await extractFullRecipeDetailsFromAPIResult(recipe_info.data, user_name)
+        let recipe_info;
+        try{
+            recipe_info = await getRecipeInformation(recipeId);
+        }
+        catch (error){
+            if(error["response"]["status"] == 404){
+                throw { status: 404, message: " recipe id wasnt found" };
+            }
+            throw { status: 500, message: "server error" };
+        }
+        recipeToReturn = await extractFullRecipeDetailsFromAPIResult(recipe_info.data, username)
     }
     if (recipeToReturn) {
-        await dbUtils.updateWatchedRecipe(user_name, recipeId)
+        await dbUtils.updateWatchedRecipe(username, recipeId)
     }
     return recipeToReturn
 

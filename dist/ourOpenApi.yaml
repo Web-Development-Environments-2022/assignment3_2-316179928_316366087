@@ -38,10 +38,8 @@ paths:
                 items:
                   oneOf:
                   - $ref: '#/components/schemas/recipeSummrization'
-        "401":
-          description: User not logged-in.
         "404":
-          description: recipe not found.
+          description: recipe not found - Request failed with status code 404.
   /recipes/getUserRecipes:
     get:
       tags:
@@ -73,6 +71,8 @@ paths:
                   - $ref: '#/components/schemas/recipeSummrization'
         "401":
           description: User not logged-in.
+        "402":
+          description: Invalid type of operation.
         "404":
           description: recipe not found.
   /recipes/searchRecipe:
@@ -182,8 +182,8 @@ paths:
                 items:
                   oneOf:
                   - $ref: '#/components/schemas/recipeSummrization'
-        "404":
-          description: didn't found results for your search.
+        "406":
+          description: please send full details
   /recipes/recipe:
     get:
       tags:
@@ -210,7 +210,9 @@ paths:
         "401":
           description: User not logged-in.
         "404":
-          description: recipe id not found.
+          description: recipe id wasnt found.
+        "500":
+          description: server error.
     post:
       tags:
       - recipes
@@ -249,7 +251,7 @@ paths:
   /Register:
     post:
       tags:
-      - users
+      - Auth
       summary: this method will add user to the db
       description: By passing in the appropriate options, you can register as a new user.
       operationId: registerUser
@@ -264,10 +266,22 @@ paths:
           description: user register was successful
         "403":
           description: user name already exists
+        "406":
+          description: one of the required details is missing
+        "408":
+          description: Please log out before.
+  /logout:
+    post:
+      tags:
+        - Auth
+      summary: logout a user from the system and delete his cookie
+      responses:
+        "200":
+          description: "the user has ben successfully logged out"
   /Login:
     post:
       tags:
-      - users
+      - Auth
       summary: this method will check login details, if it correct the user will get a cookie.
       description: By passing in the appropriate options, you can login as a user.
       operationId: login
@@ -282,6 +296,54 @@ paths:
           description: user log-in was successful
         "401":
           description: one of the details is incorrect.
+        "408":
+          description: Please log out before.
+  /users/favorites:
+     post:
+      tags:
+      - users
+      summary: this method will add to user favorite recipes.
+      description: By clicking on the favorite button the recipe will be added to the favories.
+      operationId: favorite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipeId:
+                  type: string
+              required: true
+      responses:
+        "200":
+          description: user log-in was successful
+        "401":
+          description: one of the details is incorrect.
+        "404":
+          description: recipe not found.
+        "409":
+          description: recipe already added to favorites.
+  /users/family:
+    get:
+      tags:
+      - users
+      summary: returns an array of user family recipes.
+      description: this method returns an array of user family recipes.
+      operationId: family
+      responses:
+        "200":
+          description: recipes has been loaded.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                  - $ref: '#/components/schemas/familyRecipe'
+        "401":
+          description: User not logged-in.
+        "500":
+          description: server internal error      
 components:
   schemas:
     recipeSummrization:
@@ -289,12 +351,12 @@ components:
       - glutenFree
       - id
       - name
-      - picture
       - popularity
       - timeToMake
       - wasSavedByUser
       - wasWatchedByUserBefore
       - whoCanEatVegOrNot
+      - image 
       type: object
       properties:
         recipeID:
@@ -329,6 +391,10 @@ components:
         wasSavedByUser:
           description: was this recipe saved by the user to the favorites
           type: boolean
+        image:
+          description: holds the image url of the recipe
+          type: string
+          example: https://my.image 
     recipe:
       required:
       - ingridients
@@ -351,14 +417,15 @@ components:
           example: 1234
     addedRecipe:
       required:
+      - name
+      - timeToMake
+      - popularity
+      - whoCanEatVegOrNot
       - glutenFree
       - ingridients
       - instructions
-      - name
       - numberOfMeals
-      - picture
-      - timeToMake
-      - whoCanEatVegOrNot
+      - image
       type: object
       properties:
         name: 
@@ -368,13 +435,17 @@ components:
           type: string
           description: time to make the recipe
           format: time
-          example: 20:00m
+          example: 20
+        popularity:
+          type: string
+          description: what is the popularity of the recipe
+          example: 20
         whoCanEatVegOrNot:
           type: string
           enum:
           - vegeterian
           - vegan
-          - meetLovers
+          - meatLovers
         glutenFree:
           type: boolean
         ingridients:
@@ -390,6 +461,10 @@ components:
           description: The number of meals that will be created
           format: int32
           example: 1234
+        image:
+          type: string
+          description: image url
+          example: https://my.image
     user:
       type: object
       properties:
@@ -399,18 +474,22 @@ components:
           type: string
           description: userName contatins between 3 to 8 letters only
           example: stamuser
+          required: true
         firstname:
           type: string
           description: user's first name
           example: stam
+          required: true
         lastname:
           type: string
           description: user's last name
           example: lname
+          required: true
         country:
           type: string
           description: user's country
           example: Israel
+          required: true
         password:
           maxLength: 10
           minLength: 5
@@ -418,16 +497,19 @@ components:
           description: pasword contatins between 5 to 10 chars, at least one of them is a number and a special char.
           format: password
           example: stam$5
+          required: true
         email:
           type: string
           description: user's email
           format: email
           example: stam@test.com
+          required: true
         profilePic:
           type: string
           description: URL of the user's image
           format: URL
           example: https://web.com/photo
+          required: true
       description: user info
     inline_response_200:
       allOf:
@@ -438,8 +520,55 @@ components:
       properties:
         username:
           type: string
+          required: true
         password:
           type: string
+          required: true
       example:
         username: yossi
         password: yos@55
+    familyRecipe:
+      required:
+      - dishName
+      - dishOwner
+      - whenWeMakeIt
+      - ingridients
+      - instructions
+      - username
+      - image
+      - howManyDishes
+      type: object
+      properties:
+        dishName:
+          type: string
+          description: dish name
+          example: pasta
+        dishOwner:
+          type: string
+          description: who always makes the dish
+          example: father
+        whenWeMakeIt:
+          type: string
+          description: when we make the recipe
+          example: now
+        ingridients:
+          type: string
+          description: ingridients to make the recipe
+          example: salt
+        instructions:
+          type: string
+          description: instructions to make the recipe
+          example: add salt
+        username:
+          type: string
+          description: user name
+          example: yossi
+        image:
+          type: string
+          description: image path
+          example: C:\\here
+        howManyDishes:
+          type: integer
+          description: The number of meals that will be created
+          format: int32
+          example: 1234

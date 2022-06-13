@@ -11,6 +11,13 @@ router.get("/", (req, res) => res.send("im here"));
  router.get("/searchRecipe", async (req, res, next) => { // maybe need to add here search query to cookies
   try {
       let user_name = req.session.username
+      // req.session.lastSearch = 
+      if (req.query.recipeSearchName == undefined){
+        throw { status: 406, message: "please send full details" };
+      }
+      if (req.query.numberOfRecipes == undefined){
+        req.query.numberOfRecipes = 5
+      }
       const recipes = await recipes_utils.getRecipesByName(req.query.recipeSearchName, req.query.numberOfRecipes, req.query.cuisine, req.query.diet, req.query.intolerances, user_name);
       res.send(recipes);
   } catch (error) {
@@ -18,34 +25,10 @@ router.get("/", (req, res) => res.send("im here"));
   }
 });
 
-router.use(async function (req, res, next) {
-    if (req.session && req.session.username) {
-      DButils.execQuery("SELECT username FROM users").then((users) => {
-        if (users.find((x) => x.username === req.session.username)) {
-          req.username = req.session.username;
-          next();
-        }
-      }).catch(err => next(err));
-    } else {
-      res.sendStatus(401);
-    }
-  });
-
-/**
- * This path returns a full details of a recipe by its id
- */
-// router.get("/:recipeId", async (req, res, next) => {
-//   try { 
-//     const recipe = await recipes_utils.getRecipeDetails(req.params.recipeId);
-//     res.send(recipe);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 
 router.get("/getRandomRecipes",async (req, res, next) => {
-    try {
-      let user_name = req.session.username
+  try {
+    let user_name = req.session.username
       if (user_name == null){
         user_name = "stam"
       }
@@ -58,9 +41,23 @@ router.get("/getRandomRecipes",async (req, res, next) => {
   });
 
 
+  router.use(async function (req, res, next) {
+      if (req.session && req.session.username) {
+        DButils.execQuery("SELECT username FROM users").then((users) => {
+          if (users.find((x) => x.username === req.session.username)) {
+            req.username = req.session.username;
+            next();
+          }
+        }).catch(err => next(err));
+      } else {
+        res.sendStatus(401);
+      }
+    });
+  
+  
 router.get("/getUserRecipes", async(req, res, next) => {
     try {
-        let user_name = req.session.username //change to cookie
+        let user_name = req.session.username 
         const recipes = await recipes_utils.getUserRecipes(user_name, req.query.type);
         res.send(recipes);
     } catch (error) {
@@ -79,27 +76,22 @@ router.get("/recipe", async(req, res, next) => {
 })
 
 router.post('/recipe', async (req,res,next) => {
-    
     try{
       let recipe_details = {
-        recipeID: req.body.recipeID,
         username: req.session.username,
         name: req.body.name,
-        popularity: 10,
+        popularity: req.body.popularity,
         timeToMake: req.body.timeToMake,
         whoCanEatVegOrNot: req.body.whoCanEatVegOrNot,
         glutenFree: req.body.glutenFree,
         ingridients: req.body.ingridients,
         instructions: req.body.instructions,
         numberOfMeals: req.body.numberOfMeals,
+        picture: req.body.image
       }
       if (hasNull(recipe_details)){
-        throw { status: 409, message: "please send full details" };
-      }
-      // console.log(await DButils.existsInDB("recipeID", "recipes",recipe_details.recipeID))
-      if(await DButils.existsInDB("recipeID", "recipes",recipe_details.recipeID)){
-        throw { status: 409, message: "recipe exists in db, please insert another name" };
-      }     
+        throw { status: 406, message: "please send full details" };
+      }    
       result = await recipes_utils.addRecepie(recipe_details);
       res.status(200).send("The Recipe successfully added to DB");
     }
@@ -110,12 +102,12 @@ router.post('/recipe', async (req,res,next) => {
   
   });
 
-  function hasNull(target) {
-    for (var member in target) {
-        if (target[member] == null)
-            return true;
-    }
-    return false;
+function hasNull(target) {
+  for (var member in target) {
+      if (target[member] == null)
+          return true;
+  }
+  return false;
 }
 
 module.exports = router;
