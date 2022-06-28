@@ -61,7 +61,6 @@ exports.getRecipeSummary = async function(recipeID) {
 }
 
 exports.updateWatchedRecipe = async function(user_name, recipeId) {
-    await execQuery(`DELETE FROM watchedRecipes WHERE recipeID='${recipeId}' AND username='${user_name}'`)
     await execQuery(`insert into watchedRecipes values ('${user_name}', '${recipeId}', '${new Date().toISOString().slice(0, 19).replace('T', ' ')}')`)
 }
 
