@@ -40,6 +40,9 @@ router.post("/Register", async (req, res, next) => {
       email: req.body.email,
       profilePic: req.body.profilePic
     }
+    if (user_details.profilePic == undefined ){
+      user_details.profilePic = ''
+    }
     if (hasNull(user_details)){
       throw { status: 406, message: "please send full details" };
     }
