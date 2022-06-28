@@ -30,7 +30,7 @@ async function extractRecipeSummaryFromAPIResult(APIRecipe, username) {
     let x = await wasRecipeWatchedByUser(username, APIRecipe["id"])
     let y = await wasRecipeSavedByUser(username, APIRecipe["id"])
     let check = {
-        "recipeID": APIRecipe["id"],
+        "recipeID": APIRecipe["id"].toString(),
         "name": APIRecipe["title"],
         "timeToMake": APIRecipe["readyInMinutes"],
         "popularity": APIRecipe["aggregateLikes"],
