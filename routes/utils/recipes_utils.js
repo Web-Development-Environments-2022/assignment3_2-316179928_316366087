@@ -55,7 +55,7 @@ async function wasRecipeSavedByUser(username, recipeID) {
 async function extractFullRecipeDetailsFromAPIResult(recipe_info, username) {
     recipeFullDetails = await extractRecipeSummaryFromAPIResult(recipe_info, username)
     recipeFullDetails["ingridients"] = recipe_info["extendedIngredients"].map(function(ingridientDict) {
-        return ingridientDict["original"]
+        return `<li>${ingridientDict["original"]}</li>`
     }).join("\n")
     recipeFullDetails["instructions"] = recipe_info["instructions"]
     recipeFullDetails["numberOfMeals"] = recipe_info["servings"]
@@ -83,9 +83,9 @@ async function getRecipesByName(recipeSearchName, numberOfRecipes, cuisine, diet
     if (cuisine!=undefined)
         queryParams["cuisine"] = cuisine
     if (diet!=undefined)
-        queryParams["diet"] = cuisine
+        queryParams["diet"] = diet
     if (intolerances!=null)
-        queryParams["intolerances"] = cuisine
+        queryParams["intolerances"] = intolerances
 
     let allResults = (await axios.get(`${api_domain}/complexSearch`, {
         params: queryParams
