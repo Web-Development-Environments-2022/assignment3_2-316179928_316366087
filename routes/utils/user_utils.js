@@ -2,7 +2,7 @@ const DButils = require("./DButils");
 const rutils = require("./recipes_utils");
 
 async function markAsFavorite(user_id, recipe_id){
-    await rutils.getFullRecipe(user_id,recipe_id) //throw error if not exists
+    await rutils.getFullRecipe(user_id,recipe_id, false) //throw error if not exists
     try{
         await DButils.execQuery(`insert into favoriterecipes values ('${recipe_id}','${user_id}')`);
     }

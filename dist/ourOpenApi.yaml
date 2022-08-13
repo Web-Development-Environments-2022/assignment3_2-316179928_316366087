@@ -11,9 +11,9 @@ info:
   version: 1.0.0
 servers:
 # local:
-- url: "http://127.0.0.1:80"
+# - url: "http://127.0.0.1:80"
 # remote:
-# - url: https://virtserver.swaggerhub.com/ehud-m/Assignment3/1.0.0
+- url: https://foodthirteen.cs.bgu.ac.il
   description: SwaggerHub API Auto Mocking
 tags:
 - name: recipes

@@ -56,8 +56,9 @@ exports.getRecipeFullDetails = async function(recipeId) {
     return res
 }
 
-exports.getRecipeSummary = async function(recipeID) {
-    return (await execQuery(`SELECT recipeID,name,timeToMake,image,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`))[0]
+exports.getRecipeSummary = async function(recipeID) { 
+  let x = (await execQuery(`SELECT recipeID,name,timeToMake,image,popularity,whoCanEatVegOrNot,glutenFree FROM recipes WHERE recipeID='${recipeID}'`))
+  return x[0]
 }
 
 exports.updateWatchedRecipe = async function(user_name, recipeId) {

@@ -68,7 +68,7 @@ router.get("/getUserRecipes", async(req, res, next) => {
 router.get("/recipe", async(req, res, next) => {
     try {
         let user_name = req.session.username
-        const fullRecipe = await recipes_utils.getFullRecipe(user_name, req.query.recipeId)
+        const fullRecipe = await recipes_utils.getFullRecipe(user_name, req.query.recipeId, true)
         res.send(fullRecipe)
     } catch (error) {
         next(error);
