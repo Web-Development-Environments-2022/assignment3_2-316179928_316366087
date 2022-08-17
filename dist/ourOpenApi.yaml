@@ -231,23 +231,6 @@ paths:
           description: User not logged-in.
         "403":
           description: couldn't register recipe to db
-  /load:
-    get:
-      tags:
-      - webPageLoading
-      summary: this method will return HTML,Css and Js files at first page loading
-      description: |
-        Load all HTML, CSS and JS resources needed to show the website.
-      operationId: loadPage
-      responses:
-        "200":
-          description: Load was successful
-          content:
-            application/JS:
-              schema:
-                type: object
-        "404":
-          description: Resources didnt found.
   /Register:
     post:
       tags:
